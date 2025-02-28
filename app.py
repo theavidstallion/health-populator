@@ -2,7 +2,7 @@ from flask import Flask
 from apscheduler.schedulers.background import BackgroundScheduler
 import pyodbc
 import random
-from datetime import datetime
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 
@@ -17,29 +17,37 @@ conn_str = "DRIVER={ODBC Driver 18 for SQL Server};" \
            "Connection Timeout=30;"
 
 def insert_health_data():
-    """Insert simulated health data into Azure SQL Database every 10 seconds."""
+    """Insert 10 rows of health data with timestamps spread across 10 seconds."""
     try:
         conn = pyodbc.connect(conn_str)
         cursor = conn.cursor()
 
-        # Generating random values for health metrics
-        heart_rate = random.randint(60, 100)  # Normal adult heart rate
-        spO2 = random.randint(95, 100)  # Normal oxygen saturation
-        body_humidity = random.randint(30, 70)  # Hypothetical body humidity
-        uv_level = round(random.uniform(0, 10), 2)  # UV index (0-10)
-        env_temperature = round(random.uniform(20.0, 35.0), 2)  # Room temperature
-        body_temperature = round(random.uniform(36.1, 37.2), 2)  # Body temperature
-
-        # Insert into SQL database (id is auto-incremented, timestamp is auto-generated)
         query = """INSERT INTO health_metrics 
-                   (heart_rate, spO2, body_humidity, uv_level, env_temperature, body_temperature) 
-                   VALUES (?, ?, ?, ?, ?, ?)"""
-        cursor.execute(query, (heart_rate, spO2, body_humidity, uv_level, env_temperature, body_temperature))
+                   (heart_rate, spO2, body_humidity, uv_level, env_temperature, body_temperature, timestamp) 
+                   VALUES (?, ?, ?, ?, ?, ?, ?)"""
+
+        data_batch = []  # Store multiple rows
+        current_time = datetime.now()  # Exact time at function execution
+
+        for i in range(10):  
+            # Generate decreasing timestamps (first row = 10 sec ago, last row = now)
+            row_timestamp = current_time - timedelta(seconds=(10 - i))
+
+            heart_rate = random.randint(60, 100)
+            spO2 = random.randint(95, 100)
+            body_humidity = random.randint(30, 70)
+            uv_level = round(random.uniform(0, 10), 2)
+            env_temperature = round(random.uniform(20.0, 35.0), 2)
+            body_temperature = round(random.uniform(36.1, 37.2), 2)
+
+            data_batch.append((heart_rate, spO2, body_humidity, uv_level, env_temperature, body_temperature, row_timestamp))
+
+        cursor.executemany(query, data_batch)  # Insert all 10 rows at once
 
         conn.commit()
         cursor.close()
         conn.close()
-        print(f"✅ Data inserted successfully at {datetime.now()}")
+        print(f"✅ {len(data_batch)} rows inserted from {data_batch[0][-1]} to {data_batch[-1][-1]}")
 
     except Exception as e:
         print("❌ Database error:", str(e))
