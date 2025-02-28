@@ -17,7 +17,7 @@ conn_str = "DRIVER={ODBC Driver 18 for SQL Server};" \
            "Connection Timeout=30;"
 
 def insert_health_data():
-    """Insert 10 rows of health data with timestamps spread across 10 seconds."""
+    """Insert 60 rows of health data with timestamps spread over the past 60 seconds."""
     try:
         conn = pyodbc.connect(conn_str)
         cursor = conn.cursor()
@@ -27,12 +27,11 @@ def insert_health_data():
                    VALUES (?, ?, ?, ?, ?, ?, ?)"""
 
         data_batch = []  # Store multiple rows
-        current_time = datetime.now()  # Exact time at function execution
+        current_time = datetime.now()  # Exact execution time
 
-        for i in range(10):  
-            # Generate decreasing timestamps (first row = 10 sec ago, last row = now)
-            row_timestamp = current_time - timedelta(seconds=(10 - i))
-
+        for i in range(60):  
+            # Generate timestamps (first row = 60 sec ago, last row = now)
+            timestamp = current_time - timedelta(seconds=(60 - i))
             heart_rate = random.randint(60, 100)
             spO2 = random.randint(95, 100)
             body_humidity = random.randint(30, 70)
@@ -42,7 +41,7 @@ def insert_health_data():
 
             data_batch.append((heart_rate, spO2, body_humidity, uv_level, env_temperature, body_temperature, row_timestamp))
 
-        cursor.executemany(query, data_batch)  # Insert all 10 rows at once
+        cursor.executemany(query, data_batch)  # Bulk insert 60 rows
 
         conn.commit()
         cursor.close()
@@ -52,9 +51,9 @@ def insert_health_data():
     except Exception as e:
         print("❌ Database error:", str(e))
 
-# Run insert function every 10 seconds
+# Run insert function every 60 seconds
 scheduler = BackgroundScheduler()
-scheduler.add_job(insert_health_data, 'interval', seconds=10)
+scheduler.add_job(insert_health_data, 'interval', seconds=60)
 scheduler.start()
 
 @app.route('/')
