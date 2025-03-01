@@ -46,7 +46,7 @@ def insert_health_data():
 
 # Run insert function every 10 seconds
 scheduler = BackgroundScheduler()
-scheduler.add_job(insert_health_data, 'interval', seconds=10)
+scheduler.add_job(insert_health_data, 'interval', seconds=60)
 scheduler.start()
 
 @app.route('/')
