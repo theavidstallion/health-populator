@@ -24,6 +24,8 @@ LOINC_CODES = {
     "UV Index": "N/A",  # No standard LOINC for this
     "Environmental Temperature": "8310-5",
     "Body Temperature": "8310-5",
+    "Systolic BP": "8480-6",
+    "Diastolic BP": "8462-4",
 }
 
 UNITS = {
@@ -33,6 +35,8 @@ UNITS = {
     "UV Index": "index",
     "Environmental Temperature": "°C",
     "Body Temperature": "°C",
+    "Systolic BP": "mmHg",
+    "Diastolic BP": "mmHg",
 }
 
 def insert_health_data():
@@ -51,6 +55,8 @@ def insert_health_data():
             "UV Index": round(random.uniform(0, 10), 2),
             "Environmental Temperature": round(random.uniform(20.0, 35.0), 2),
             "Body Temperature": round(random.uniform(36.1, 37.2), 2),
+            "Systolic BP": random.randint(90, 140),
+            "Diastolic BP": random.randint(60, 90),
         }
 
         # Batch insert query for efficiency
